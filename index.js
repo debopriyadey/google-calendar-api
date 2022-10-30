@@ -186,6 +186,30 @@ const addEvent = () => {
   });
 
   request.execute(function(event) {
-    console.log(event.htmlLink);
+    var ISOstartdate = new Date(event.start.dateTime).toISOString();
+    var eid =
+      event.id + "_" + ISOstartdate.replace(/[:-]/g, "").replace(".000Z", "Z");
+    var calendarId = event.creator.email;
+    createMeet(calendarId, eid);
   });
+
+  async function createMeet(calendarId, eid) {
+    const eventPatch = {
+      conferenceData: {
+        createRequest: { requestId: "7qxalsvy0e" }
+      }
+    };
+
+    await gapi.client.calendar.events
+      .patch({
+        calendarId: calendarId,
+        eventId: eid, // id + startdate.toISOString()
+        resource: eventPatch,
+        sendNotifications: true,
+        conferenceDataVersion: 1
+      })
+      .execute(function(event) {
+        console.log("Conference created for event: %s", event.htmlLink);
+      });
+  }
 };
